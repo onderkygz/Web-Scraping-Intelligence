@@ -2,9 +2,9 @@
 
 ![Cover](assets/cover.png)
 
-**Multi-Agent Web Scraping Framework — Free & Open Source**
+**Çoklu AI Ajan Desteğiyle Özgür Web Kazıma Framework'ü**
 
-> Zero API keys • Zero setup • Zero credits • Optimized for 3 AI agents
+> Sıfır API anahtarı • Sıfır kurulum • Sıfır kredi • 3 AI ajanı için optimize edilmiş
 
 ---
 
@@ -132,4 +132,4 @@ Web-Scraping-Intelligence/
 
 ## 📄 License
 
-MIT © 2025
+MIT © 2026 Onder Kaygusuz

@@ -1,6 +1,6 @@
-# Hermes Agent Integration
+# Hermes Agent Entegrasyonu
 
-> Web Scraping Intelligence for Nous Research Hermes Agent — Zero setup with built-in tools
+> Nous Research Hermes Agent için Web Scraping Intelligence — Yerleşik araçlarla sıfır kurulum
 
 ## Hermes Tool Set
 

@@ -1,6 +1,6 @@
 # Antigravity Entegrasyonu
 
-> Google Antigravity için Web İstihbarat Ajansı — Native araçlar + Webscout CLI
+> Google Antigravity için Web Scraping Intelligence — Native araçlar + Webscout CLI
 
 ## Antigravity'nin Araç Seti
 

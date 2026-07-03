@@ -1,6 +1,6 @@
 # Claude Code Entegrasyonu
 
-> Claude Code için Web İstihbarat Ajansı — Python script'leri ile web kazıma
+> Claude Code için Web Scraping Intelligence — Python script'leri ile web kazıma
 
 ## Claude Code'un Araç Seti
 
