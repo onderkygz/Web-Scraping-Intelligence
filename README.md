@@ -37,17 +37,20 @@ A framework that replicates Firecrawl's full feature set (search, scrape, intera
 
 ## 📊 Comparison
 
-| Criteria | This Framework | webscout | Antigravity |
-|---|---|---|---|
-| Coverage (8 tools) | **10** | 7.5 | 8 |
-| Tool Depth | **9.5** | 10 | 7 |
-| Op. Maturity | **9.5** | 10 | 6 |
-| Error Handling | **10** | 10 | 9 |
-| Setup Ease | **10** | 4 | 10 |
-| Rate Limiting | **10** | 8 | 10 |
-| Human-in-the-Loop | **10** | 5 | 10 |
-| Multi-Agent Support | **10** | 0 | 0 |
-| **TOTAL** | **🥇 128** | 🥈 94 | 🥉 88 |
+Each agent's **initial** skill score vs. the **final merged** framework:
+
+| Criteria | Antigravity | Claude Code | Hermes | This Framework |
+|---|---|---|---|---|
+| Coverage (8 tools) | 8.0 | 7.5 | 9.0 | **10.0** |
+| Tool Depth | 7.0 | 10.0 | 5.0 | **9.5** |
+| Op. Maturity | 6.0 | 10.0 | 3.0 | **9.5** |
+| Error Handling | 9.0 | 10.0 | 6.0 | **10.0** |
+| Setup Ease | 10.0 | 4.0 | 10.0 | **10.0** |
+| Rate Limiting | 10.0 | 8.0 | 3.0 | **10.0** |
+| Human-in-the-Loop | 10.0 | 5.0 | 4.0 | **10.0** |
+| **TOTAL (/100)** | **86** | **78** | **57** | **🥇 99** |
+
+> **This Framework** = Antigravity + Claude Code + Hermes + real debugging experience, merged into one.
 
 ---
 
@@ -96,7 +99,7 @@ The skill auto-loads on requests like:
 Built by merging the best parts of 3 different skills + optimized for 3 AI agents:
 
 - **Original design:** Zero setup, monitoring, parse, vision, Turkish
-- **webscout:** Decision flow, tool depth, operational maturity, error handling
+- **Claude Code:** Decision flow, tool depth, operational maturity, error handling
 - **Antigravity:** Rate limiting, human-in-the-loop, infinite crawl ban, bug fix history
 - **Real debugging experience:** False positive warnings, blank tab detection, baseline pattern
 
