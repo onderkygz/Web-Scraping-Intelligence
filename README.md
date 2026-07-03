@@ -61,7 +61,7 @@ Skill otomatik tetiklenir. Ek kurulum yok.
 
 ### Claude Code
 ```bash
-git clone https://github.com/onderkygz/web-istihbarat-ajansi.git
+git clone https://github.com/onderkygz/Web-Scraping-Intelligence.git
 cd web-istihbarat-ajansi
 pip install --break-system-packages -r assets/requirements.txt
 playwright install chromium
@@ -72,7 +72,7 @@ cp integrations/claude-code.md ~/.claude/skills/web-istihbarat.md
 ```bash
 # Native mod: Sıfır kurulum, araçlar zaten yerleşik
 # CLI mod:
-git clone https://github.com/onderkygz/web-istihbarat-ajansi.git
+git clone https://github.com/onderkygz/Web-Scraping-Intelligence.git
 cd web-istihbarat-ajansi
 pip install --break-system-packages -r assets/requirements.txt
 ```
