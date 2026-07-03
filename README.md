@@ -62,7 +62,7 @@ Skill otomatik tetiklenir. Ek kurulum yok.
 ### Claude Code
 ```bash
 git clone https://github.com/onderkygz/Web-Scraping-Intelligence.git
-cd web-istihbarat-ajansi
+cd Web-Scraping-Intelligence
 pip install --break-system-packages -r assets/requirements.txt
 playwright install chromium
 cp integrations/claude-code.md ~/.claude/skills/web-istihbarat.md
@@ -73,7 +73,7 @@ cp integrations/claude-code.md ~/.claude/skills/web-istihbarat.md
 # Native mod: Sıfır kurulum, araçlar zaten yerleşik
 # CLI mod:
 git clone https://github.com/onderkygz/Web-Scraping-Intelligence.git
-cd web-istihbarat-ajansi
+cd Web-Scraping-Intelligence
 pip install --break-system-packages -r assets/requirements.txt
 ```
 
@@ -105,7 +105,7 @@ Skill, şu tür isteklerde otomatik olarak yüklenir:
 ## 📁 Repo Yapısı
 
 ```
-web-istihbarat-ajansi/
+Web-Scraping-Intelligence/
 ├── README.md                          # Bu dosya
 ├── SKILL.md                           # Hermes Agent skill dosyası (ana kaynak)
 ├── assets/
