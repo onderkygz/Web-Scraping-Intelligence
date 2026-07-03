@@ -1,92 +1,93 @@
-# Hermes Agent Entegrasyonu
+# Hermes Agent Integration
 
-> Nous Research Hermes Agent için Web İstihbarat Ajansı — Yerleşik araçlarla sıfır kurulum
+> Web Scraping Intelligence for Nous Research Hermes Agent — Zero setup with built-in tools
 
-## Hermes'in Araç Seti
+## Hermes Tool Set
 
-| Hermes Aracı | Bu Entegrasyonda Kullanımı |
+| Hermes Tool | Usage in This Integration |
 |---|---|
-| `web_search` | Web araması |
-| `web_extract` | Tek/çoklu URL → temiz markdown |
-| `browser_navigate` | Browser oturumu başlat |
-| `browser_snapshot` | Sayfayı text olarak gör, ref ID'leri al |
-| `browser_click` | Elemente tıkla |
-| `browser_type` | Input'a yaz |
-| `browser_press` | Klavye tuşu bas |
-| `browser_scroll` | Sayfayı kaydır |
-| `browser_console` | JavaScript çalıştır, DOM'dan veri çek |
-| `browser_vision` | Screenshot + görsel analiz |
-| `cronjob` | Periyodik monitoring |
-| `read_file` | Dosya okuma (PDF/DOCX/XLSX otomatik) |
-| `terminal` | Shell komutları |
-| `execute_code` | Python script çalıştırma |
+| `web_search` | Web search |
+| `web_extract` | Single/multi URL → clean markdown |
+| `browser_navigate` | Start browser session |
+| `browser_snapshot` | View page as text, get ref IDs |
+| `browser_click` | Click element |
+| `browser_type` | Type into input |
+| `browser_press` | Press keyboard key |
+| `browser_scroll` | Scroll page |
+| `browser_console` | Run JavaScript, extract DOM data |
+| `browser_vision` | Screenshot + visual analysis |
+| `cronjob` | Periodic monitoring |
+| `read_file` | File reading (PDF/DOCX/XLSX auto-detect) |
+| `terminal` | Shell commands |
+| `execute_code` | Python script execution |
 
-## Araç Eşleştirme Tablosu
+## Tool Mapping
 
-| Firecrawl | Hermes | Kullanım |
+| Firecrawl | Hermes | Usage |
 |---|---|---|
-| `search` | `web_search` | `web_search("sorgu", limit=10)` |
+| `search` | `web_search` | `web_search("query", limit=10)` |
 | `scrape` | `web_extract` | `web_extract(["url"])` |
-| `interact` | `browser_navigate` + `browser_click/type/snapshot` | Zincirleme browser oturumu |
-| `map` | `browser_navigate` + `browser_console` | Link keşfi |
-| `crawl` | `web_extract` (çoklu) + `execute_code` | Batch'li çoklu çekme |
-| `batch` | `web_extract` (toplu URL) | 5 URL'e kadar paralel |
+| `interact` | `browser_navigate` + `browser_click/type/snapshot` | Chained browser session |
+| `map` | `browser_navigate` + `browser_console` | Link discovery |
+| `crawl` | `web_extract` (multi) + `execute_code` | Batched multi-extraction |
+| `batch` | `web_extract` (batch URLs) | Up to 5 parallel URLs |
 | `monitor` | `cronjob` | `cronjob(action="create", ...)` |
-| `parse` | `read_file` / `terminal` | PDF/DOCX/XLSX → metin |
+| `parse` | `read_file` / `terminal` | PDF/DOCX/XLSX → text |
 
-## Karar Akışı
+## Decision Flow
 
 ```
-1. URL yok → web_search("sorgu", limit=10)
-2. URL var, statik → web_extract(["url"])
-3. web_extract boş döndü → browser_navigate (JS fallback)
-4. Etkileşim gerekli → browser_navigate → browser_snapshot → browser_click/type → browser_snapshot
-5. Çok sayfalı → web_extract([url1..url5]) (batch)
-6. Periyodik takip → cronjob
-7. Lokal dosya → read_file
+1. No URL → web_search("query", limit=10)
+2. Have URL, static → web_extract(["url"])
+3. web_extract empty → browser_navigate (JS fallback)
+4. Interaction needed → browser_navigate → browser_snapshot → browser_click/type → browser_snapshot
+5. Many pages → web_extract([url1..url5]) (batch)
+6. Periodic tracking → cronjob
+7. Local file → read_file
 ```
 
-## Çalışan Örnek
+## Worked Example
 
-> "Amazon'da iPhone 16 fiyatlarını araştır."
+> "Find iPhone 16 prices on Amazon."
 
 ```python
-# 1. Ara
-web_search("iPhone 16 fiyat site:amazon.com", limit=5)
+# 1. Search
+web_search("iPhone 16 price site:amazon.com", limit=5)
 
-# 2. Statik dene
+# 2. Try static
 web_extract(["https://www.amazon.com/.../dp/B0XXXXX..."])
 
-# 3. Boş/eksik geldiyse browser'a geç
+# 3. If empty/incomplete, switch to browser
 browser_navigate("https://www.amazon.com/.../dp/B0XXXXX...")
 browser_snapshot()
 
-# 4. Gerekirse scroll
+# 4. Scroll if needed
 browser_scroll(direction="down")
 browser_snapshot()
 
-# 5. DOM'dan direkt çek
+# 5. Extract directly from DOM
 browser_console(expression="document.querySelector('.a-price .a-offscreen')?.textContent")
 
-# 6. Görsel doğrulama
-browser_vision(question="Bu sayfadaki ürün adı, fiyatı ve stok durumu nedir?")
+# 6. Visual verification
+browser_vision(question="What is the product name, price, and stock status on this page?")
 ```
 
 ## Browser Session Hygiene
 
-- Her `browser_click`/`browser_type` sonrası `browser_snapshot` ile DOĞRULA
-- İlk yüklemede boş tab (`chrome://new-tab-page/`) kontrolü yap
-- Snapshot sonrası ref ID'leri (`@e1`, `@e2`) yenilenir — güncel olanları kullan
-- Körlemesine tıklama zinciri yapma
+- After every `browser_click`/`browser_type`, VERIFY with `browser_snapshot`
+- On first load, check for blank tab (`chrome://new-tab-page/`) — verify the real page loaded
+- Snapshot ref IDs (`@e1`, `@e2`) refresh on every page change — use current ones
+- Don't chain clicks blindly
 
 ## Monitoring (cronjob)
 
 ```python
 cronjob(
     action="create",
-    name="Fiyat Takip",
+    name="Price Tracker",
     schedule="every 30m",
-    prompt="web_extract ile https://example.com/pricing oku. İlk çalıştırmada baseline oluştur. Değişiklik varsa bildir.",
+    prompt="Use web_extract to read https://example.com/pricing. "
+           "On first run, establish baseline. Report changes if any.",
     deliver="all",
     skills=["firecrawl-web-intelligence"],
     enabled_toolsets=["web", "terminal", "file"]
@@ -95,31 +96,32 @@ cronjob(
 
 ## Rate Limiting
 
-- Aynı siteye `web_extract` istekleri arasında en az 1 saniye
+- At least 1 second between `web_extract` requests to the same domain
 - 429 → exponential backoff: 2s → 4s → 8s (max 16s)
-- 3 başarısız retry → kullanıcıya bildir
-- Crawl: max 15 sayfa sert limit
+- 3 failed retries → notify user
+- Crawl: hard limit of 15 pages
 
 ## Human-in-the-Loop
 
-CAPTCHA/login duvarı tespit edilirse:
+If CAPTCHA/login wall detected:
 
 ```
-⚠️ Manuel müdahale gerekli: [URL] bir CAPTCHA / login ekranı
-tarafından engelleniyor. Lütfen sayfayı manuel açıp engeli aş.
+⚠️ Manual intervention required: [URL] is blocked by a
+CAPTCHA / login screen. Please open the page manually,
+resolve the block, and tell me to continue.
 ```
 
-**False positive:** Sayfada "captcha" kelimesi geçmesi engel DEĞİLDİR.
-Gerçek engel: `cf-turnstile`, `g-recaptcha`, `h-captcha` widget'ları.
+**False positive:** The word "captcha" in page content does NOT mean blocked.
+Real blocks: `cf-turnstile`, `g-recaptcha`, `h-captcha` widget classes.
 
-## Hermes'e Özel Avantajlar
+## Hermes-Exclusive Advantages
 
-Diğer ajanlarda olmayan, sadece Hermes'te bulunan yetenekler:
+Features available only in Hermes, not in other agents:
 
-| Yetenek | Araç |
+| Feature | Tool |
 |---|---|
-| Görsel sayfa analizi | `browser_vision` |
-| DOM'dan JS ile veri çekme | `browser_console` |
-| Anlık periyodik monitoring | `cronjob` (yerleşik) |
-| Python ile özel crawler | `execute_code` |
-| Otomatik döküman parse | `read_file` (.docx/.xlsx/.ipynb) |
+| Visual page analysis | `browser_vision` |
+| DOM data extraction via JS | `browser_console` |
+| Built-in periodic monitoring | `cronjob` |
+| Custom Python crawlers | `execute_code` |
+| Auto document parsing | `read_file` (.docx/.xlsx/.ipynb) |

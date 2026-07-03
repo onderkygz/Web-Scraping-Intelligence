@@ -1,7 +1,7 @@
 ---
 name: firecrawl-web-intelligence
 description: "Free, self-hosted web-intelligence toolkit using only Hermes built-in tools (web_search, web_extract, browser, cronjob, terminal). Full Firecrawl feature parity (search/scrape/map/crawl/batch/interact/monitor/parse) — zero API keys, zero install, zero credits. Use whenever the user wants to search the web, scrape a page to clean markdown, discover URLs on a site, crawl a whole site, batch-scrape URLs, interact with JS-heavy pages, monitor changes, or parse documents."
-version: 5.1.0
+version: 5.2.0
 author: Hermes Agent
 license: MIT
 metadata:
@@ -10,188 +10,185 @@ metadata:
     related_skills: [arxiv, blogwatcher, polymarket]
 ---
 
-# Web İstihbarat Ajansı v5.0
+# Web Scraping Intelligence v5.2
 
-Hermes'in yerleşik araçlarıyla çalışan Firecrawl eşdeğeri. **Sıfır kurulum,
-sıfır API anahtarı, sıfır kredi.** Her şey hazır.
+A Firecrawl-equivalent toolkit powered entirely by Hermes built-in tools.
+**Zero setup, zero API keys, zero credits.** Everything is ready to use.
 
-| Firecrawl | Hermes | Nasıl? |
+| Firecrawl | Hermes | How? |
 |---|---|---|
-| `search` | `web_search` | Web araması, sonuçları `{title, url, description}` döner |
-| `scrape` | `web_extract` | Tek/çoklu URL → temiz markdown |
-| `map` | `browser_navigate` + `browser_console` | Link keşfi, sitemap taraması |
-| `crawl` | `web_extract` (çoklu) + `execute_code` | Çok sayfalı tarama |
-| `batchScrape` | `web_extract` (toplu URL) | Paralel çoklu URL |
-| Interact | `browser_navigate` → `snapshot` → `click/type` → `snapshot` | Kalıcı browser oturumu |
-| Monitor | `cronjob` | Periyodik kontroller |
-| Parse | `read_file` / `terminal` | PDF/DOCX/XLSX → metin |
-| JSON-mode | **Sen** (LLM) markdown'dan alanları kendin çıkar | Ücretsiz, daha doğru |
+| `search` | `web_search` | Web search, returns `{title, url, description}` |
+| `scrape` | `web_extract` | Single/multi URL → clean markdown |
+| `map` | `browser_navigate` + `browser_console` | Link discovery, sitemap scanning |
+| `crawl` | `web_extract` (multi) + `execute_code` | Multi-page extraction |
+| `batchScrape` | `web_extract` (batch URLs) | Parallel multi-URL |
+| Interact | `browser_navigate` → `snapshot` → `click/type` → `snapshot` | Persistent browser session |
+| Monitor | `cronjob` | Periodic checks |
+| Parse | `read_file` / `terminal` | PDF/DOCX/XLSX → text |
+| JSON-mode | **You** (LLM) extract fields from markdown yourself | Free, more accurate |
 
 ---
 
-## Karar Akışı
+## Decision Flow
 
-1. **URL yok, sayfa bulman lazım** → `web_search("sorgu", limit=10)`. Sonuçlardan
-   en alakalı URL'leri topla. `site:`, `-site:`, `"tam ifade"`, `filetype:pdf`
-   operatörlerini kullan.
-2. **URL var, içeriğini istiyorsun** → `web_extract(["url"])`. Statik sayfalar
-   için yeterli. JS-gerektiren sayfalarda browser'a geç.
-3. **Sayfa etkileşim gerektiriyor** (buton, form, "load more", çerez banner'ı,
-   pagination) → `browser_navigate` ile başlat, `browser_snapshot` ile gör,
-   `browser_click`/`browser_type`/`browser_press` ile sür. **Her adımdan sonra
-   `browser_snapshot` ile sayfanın değiştiğini DOĞRULA.** Körlemesine tıklama
-   zinciri yapma.
-4. **Bir sitenin tüm URL'lerini keşfet (içerik değil)** → `browser_navigate`
-   ile siteyi aç, `browser_snapshot(full=true)` ile yapıyı gör, veya
-   `browser_console` ile `document.querySelectorAll('a[href]')` ile link çıkar.
-5. **Çok sayıda sayfanın içeriği lazım** → Bilinen URL'leri `web_extract` ile
-   toplu çek (5'e kadar paralel). Bilinmeyen URL'ler için önce link keşfi yap,
-   sonra toplu çek. `execute_code` ile batch'le.
+1. **No URL, need to find pages** → `web_search("query", limit=10)`. Collect the most
+   relevant URLs. Use operators: `site:`, `-site:`, `"exact phrase"`, `filetype:pdf`.
+2. **Have a URL, want its content** → `web_extract(["url"])`. Sufficient for static
+   pages. Switch to browser for JS-heavy pages.
+3. **Page needs interaction** (buttons, forms, "load more", cookie banners,
+   pagination) → Start with `browser_navigate`, view with `browser_snapshot`,
+   drive with `browser_click`/`browser_type`/`browser_press`. **After every action,
+   VERIFY with `browser_snapshot` that the page changed.** Don't chain clicks blindly.
+4. **Discover all URLs on a site (no content)** → `browser_navigate` to open the
+   site, `browser_snapshot(full=true)` to see structure, or `browser_console` with
+   `document.querySelectorAll('a[href]')` to extract links.
+5. **Need content from many pages** → Send known URLs to `web_extract` in batches
+   (up to 5 parallel). For unknown URLs, discover links first, then batch extract.
+   Use `execute_code` for batching.
 
-**En ucuz araçla başla:** `web_extract`, `browser`'dan önce. Tek sayfa
-yeterliyse tüm siteyi tarama. `map` önce, `crawl` sonra. `scrape` önce,
-`interact` sonra.
+**Start with the cheapest tool:** `web_extract` before `browser`. If a single page
+answers the question, don't crawl the whole site. `map` before `crawl`. `scrape`
+before `interact`.
 
 ---
 
-## Aşama 1: Keşif — `web_search`
+## Phase 1: Discovery — `web_search`
 
 ```python
 web_search("site:docs.example.com pricing", limit=5)
-web_search('"iPhone 16" fiyat site:amazon.com', limit=10)
+web_search('"iPhone 16" price site:amazon.com', limit=10)
 web_search("open source AI tools 2025", limit=8)
 ```
 
-**Operatörler:** `site:domain`, `-site:domain`, `"tam ifade"`, `-hariç`,
-`filetype:pdf`, `intitle:kelime`, `inurl:kelime`.
+**Operators:** `site:domain`, `-site:domain`, `"exact phrase"`, `-exclude`,
+`filetype:pdf`, `intitle:word`, `inurl:word`.
 
-**Çıktı:** `{title, url, description}` listesi. En alakalı URL'leri
-`web_extract` ile okumak üzere topla. `limit` varsayılan 5, max 10 önerilir.
+**Output:** List of `{title, url, description}`. Collect the most relevant URLs
+for `web_extract` reading. Default `limit` is 5, max 10 recommended.
 
 ---
 
-## Aşama 2: Veri Çıkarma — `web_extract`
+## Phase 2: Extraction — `web_extract`
 
 ```python
-# Tek sayfa — temiz markdown
+# Single page — clean markdown
 web_extract(["https://example.com/article"])
 
-# Çoklu sayfa — paralel, 5 URL'e kadar tek çağrıda
+# Multiple pages — parallel, up to 5 URLs per call
 web_extract([
     "https://example.com/page1",
     "https://example.com/page2",
     "https://example.com/page3"
 ])
 
-# 5'ten fazla URL varsa batch'lere böl:
+# More than 5 URLs? Split into batches:
 # Batch 1: web_extract([url1..url5])
 # Batch 2: web_extract([url6..url10])
 ```
 
-**Çıktı:** Temiz **markdown**. Başlıklar, listeler, tablolar, linkler korunur.
-Varsayılan olarak nav/footer/ads temizlenir (ana içerik odaklı).
+**Output:** Clean **markdown**. Headings, lists, tables, links preserved.
+Nav/footer/ads stripped by default (main content focus).
 
-**JS-gerektiren sayfalar:** `web_extract` boş veya eksik içerik dönerse sayfa
-JS render gerektiriyordur → Aşama 3'e (browser) geç.
+**JS-heavy pages:** If `web_extract` returns empty or incomplete content, the
+page requires JS rendering → switch to Phase 3 (browser).
 
-**Yapılandırılmış veri (JSON mode):** Firecrawl'ın `json` formatı arkada LLM
-çağırır. Sen zaten LLM'sin — `web_extract` ile markdown'ı al, sonra kendin
-analiz edip alanları çıkar. Bu hem ücretsiz hem de genellikle daha doğru.
+**Structured data (JSON mode):** Firecrawl's `json` format calls an LLM behind
+the scenes. You already ARE the LLM — grab the markdown with `web_extract`,
+then analyze it yourself and extract the fields. This is both free and usually
+more accurate.
 
 ---
 
-## Aşama 3: Dinamik Etkileşim — Browser Araçları
+## Phase 3: Dynamic Interaction — Browser Tools
 
-Firecrawl'ın "scrape → interact → stop" akışının Hermes karşılığı.
-Her `browser_navigate` bir oturum başlatır. Aynı sitede zincirleme işlem
-yapabilirsin.
+The Hermes equivalent of Firecrawl's "scrape → interact → stop" flow.
+Each `browser_navigate` starts a session. Chain operations within the same site.
 
-### Temel Akış
+### Basic Flow
 
 ```python
-# 1. Sayfayı aç
+# 1. Open the page
 browser_navigate("https://www.amazon.com")
 
-# 2. Sayfayı gör — @e1, @e2 gibi ref ID'leri gösterir
+# 2. View the page — shows ref IDs like @e1, @e2
 browser_snapshot()
 
-# 3. Etkileşim — HER ADIMDAN SONRA snapshot ile doğrula
-browser_type(ref="@e1", text="iPhone 16 Pro Max")   # arama kutusuna yaz
-browser_press(key="Enter")                            # Enter'a bas
-browser_snapshot()                                    # ← sonuçları GÖR ve DOĞRULA
+# 3. Interact — VERIFY with snapshot after EVERY action
+browser_type(ref="@e1", text="iPhone 16 Pro Max")   # type in search box
+browser_press(key="Enter")                            # press Enter
+browser_snapshot()                                    # ← SEE and VERIFY results
 
-# 4. Tıklama, scroll, gezinme
-browser_click(ref="@e5")                  # ilk sonuca tıkla
-browser_snapshot()                        # ← ürün sayfasını GÖR
-browser_scroll(direction="down")          # aşağı kaydır
-browser_press(key="Escape")               # Escape (modal kapatma)
+# 4. Click, scroll, navigate
+browser_click(ref="@e5")                  # click first result
+browser_snapshot()                        # ← SEE product page
+browser_scroll(direction="down")          # scroll down
+browser_press(key="Escape")               # Escape (close modal)
 ```
 
-### Mevcut Aksiyonlar
+### Available Actions
 
-| Aksiyon | Kullanım | Açıklama |
+| Action | Usage | Description |
 |---|---|---|
-| `browser_navigate` | `browser_navigate(url)` | Sayfayı aç, oturum başlat |
-| `browser_snapshot` | `browser_snapshot()` / `browser_snapshot(full=true)` | Sayfayı text olarak gör, ref ID'leri al |
-| `browser_click` | `browser_click(ref="@e5")` | Elemente tıkla |
-| `browser_type` | `browser_type(ref="@e1", text="...")` | Input'a yaz (önce temizler) |
-| `browser_press` | `browser_press(key="Enter")` | Klavye tuşu bas (Enter, Tab, Escape, ArrowDown) |
-| `browser_scroll` | `browser_scroll(direction="down")` | Sayfayı kaydır (up/down) |
-| `browser_back` | `browser_back()` | Önceki sayfaya dön |
-| `browser_console` | `browser_console(expression="...")` | JavaScript çalıştır, DOM'dan veri çek |
-| `browser_vision` | `browser_vision(question="...")` | Screenshot al, görsel analiz yap |
-| `browser_get_images` | `browser_get_images()` | Sayfadaki tüm görselleri listele |
+| `browser_navigate` | `browser_navigate(url)` | Open page, start session |
+| `browser_snapshot` | `browser_snapshot()` / `browser_snapshot(full=true)` | View page as text, get ref IDs |
+| `browser_click` | `browser_click(ref="@e5")` | Click element |
+| `browser_type` | `browser_type(ref="@e1", text="...")` | Type into input (clears first) |
+| `browser_press` | `browser_press(key="Enter")` | Press key (Enter, Tab, Escape, ArrowDown) |
+| `browser_scroll` | `browser_scroll(direction="down")` | Scroll page (up/down) |
+| `browser_back` | `browser_back()` | Go back to previous page |
+| `browser_console` | `browser_console(expression="...")` | Run JavaScript, extract DOM data |
+| `browser_vision` | `browser_vision(question="...")` | Screenshot + visual analysis |
+| `browser_get_images` | `browser_get_images()` | List all images on page |
 
-### Browser Console ile Veri Çekme
+### Browser Console Data Extraction
 
 ```python
-# Tek element
+# Single element
 browser_console(expression="document.querySelector('.price')?.textContent")
 
-# Çoklu element — JSON.stringify ile
+# Multiple elements — use JSON.stringify
 browser_console(expression="JSON.stringify(Array.from(document.querySelectorAll('.product-card')).map(c => ({title: c.querySelector('h2')?.textContent, price: c.querySelector('.price')?.textContent})))")
 
-# Sayfa başlığı, URL
+# Page title, URL
 browser_console(expression="document.title")
 browser_console(expression="window.location.href")
 ```
 
-**Uyarı:** `null`/`undefined` dönebilir. Selector yanlışsa önce
-`browser_snapshot` ile sayfa yapısını gör, doğru elementleri tespit et.
+**Warning:** May return `null`/`undefined`. If the selector is wrong, first use
+`browser_snapshot` to see the page structure and identify correct elements.
 
-### Görsel Doğrulama
+### Visual Verification
 
 ```python
-# CAPTCHA, karmaşık layout, fiyat/ürün kontrolü
-browser_vision(question="Bu sayfadaki ürün fiyatı ve stok durumu nedir?")
-browser_vision(question="Bu bir CAPTCHA mı? Ne yazıyor?", annotate=true)
+# CAPTCHA, complex layout, price/product verification
+browser_vision(question="What is the product price and stock status on this page?")
+browser_vision(question="Is this a CAPTCHA? What does it say?", annotate=true)
 ```
 
-### Session Hygiene (Önemli)
+### Session Hygiene (Important)
 
-- Her `browser_click`/`browser_type` sonrası `browser_snapshot` ile sayfanın
-  değiştiğini **DOĞRULA**. Körlemesine tıklama zinciri yapma.
-- **İlk yükleme kontrolü:** `browser_navigate` sonrası sayfanın gerçekten
-  hedef sayfa olduğunu kontrol et. Boş tab (`about:blank`,
-  `chrome://new-tab-page/`), hata sayfası veya yönlendirme olmadığından
-  emin ol. İlk snapshot'ta sayfa başlığını ve URL'yi doğrula.
-- `browser_snapshot` çıktısındaki `@eN` ref ID'leri sayfa her değiştiğinde
-  **yenilenir**. Eski ref ID'leri geçersiz olur — her snapshot'tan sonra
-  güncel ref'leri kullan.
-- Aynı sitede işlemleri zincirle: navigate → snapshot → click → snapshot →
-  type → snapshot. Her seferinde yeni `browser_navigate` çağırma.
+- After every `browser_click`/`browser_type`, **VERIFY** with `browser_snapshot`
+  that the page changed. Don't chain clicks blindly.
+- **First load check:** After `browser_navigate`, verify the page actually loaded
+  the target URL. Make sure it's not a blank tab (`about:blank`,
+  `chrome://new-tab-page/`), error page, or redirect. Check the page title and
+  URL in the first snapshot.
+- `@eN` ref IDs in `browser_snapshot` output **refresh** every time the page
+  changes. Old ref IDs become invalid — always use the most recent snapshot's refs.
+- Chain operations within the same site: navigate → snapshot → click → snapshot →
+  type → snapshot. Don't call `browser_navigate` repeatedly.
 
 ---
 
-## Aşama 4: Derin Tarama
+## Phase 4: Deep Crawling
 
-### A. Bilinen URL listesi → `web_extract` (batch)
+### A. Known URL list → `web_extract` (batch)
 
 ```python
-# 5 URL'e kadar tek çağrıda
+# Up to 5 URLs in a single call
 web_extract([url1, url2, url3, url4, url5])
 
-# 5'ten fazla → execute_code ile batch'le
+# More than 5 → batch with execute_code
 from hermes_tools import web_extract
 urls = [url1, url2, ..., url20]
 for i in range(0, len(urls), 5):
@@ -199,19 +196,19 @@ for i in range(0, len(urls), 5):
     results = web_extract(batch)
 ```
 
-### B. Bilinmeyen site → Link keşfi + toplu extract
+### B. Unknown site → Link discovery + batch extract
 
 ```python
-# 1. Browser ile linkleri keşfet
+# 1. Discover links with browser
 browser_navigate("https://docs.example.com")
 browser_console(expression="JSON.stringify(Array.from(document.querySelectorAll('a[href^=\"/\"]')).map(a => a.href))")
-# → link listesini al
+# → get link list
 
-# 2. Aynı domain'dekileri filtrele, web_extract ile toplu çek
+# 2. Filter same-domain URLs, batch extract
 web_extract(filtered_urls)
 ```
 
-### C. wget ile yerel site mirror
+### C. wget for local site mirror
 
 ```bash
 wget --recursive --level=2 --no-parent \
@@ -220,268 +217,264 @@ wget --recursive --level=2 --no-parent \
      https://docs.example.com/guide/
 ```
 
-### D. execute_code ile özel crawler
+### D. Custom crawler with execute_code
 
 ```python
 from hermes_tools import web_extract, terminal
 
-# Karmaşık crawl mantığı gerekiyorsa Python ile
+# For complex crawl logic, use Python
 pages = web_extract(["https://docs.example.com"])
-# Linkleri parse et, filtrele, batch'le
+# Parse links, filter, batch
 ```
 
 ---
 
-## 📊 Monitoring — `cronjob` ile Periyodik Takip
+## 📊 Monitoring — `cronjob` for Periodic Tracking
 
-**Çalışma prensibi:** İlk çalıştırmada bir **baseline** (referans) oluştur,
-sonraki her çalıştırmada güncel içeriği baseline ile karşılaştır. Sadece
-değişiklik varsa bildir. Bu sayede her çalıştırmada gürültü yapmazsın.
+**How it works:** On the first run, establish a **baseline** (reference). On every
+subsequent run, compare current content against the baseline. Only alert when
+there's a change. This avoids noise on every run.
 
 ```python
-# Sayfa değişikliği izleme
+# Page change monitoring
 cronjob(
     action="create",
-    name="Fiyat Takip - Example.com",
+    name="Price Tracker - Example.com",
     schedule="every 30m",
-    prompt="web_extract ile https://example.com/pricing sayfasını oku. "
-           "İlk çalıştırmada içeriği baseline olarak kaydet. "
-           "Sonraki çalıştırmalarda güncel içerikle baseline'ı karşılaştır. "
-           "Eğer fiyatlar, plan isimleri veya özellikler değişmişse "
-           "ESKI vs YENI formatında bildir. Değişiklik yoksa sessiz kal.",
+    prompt="Use web_extract to read https://example.com/pricing. "
+           "On first run, save the content as baseline. "
+           "On subsequent runs, compare current content with baseline. "
+           "If prices, plan names, or features have changed, "
+           "report in OLD vs NEW format. If no change, stay silent.",
     deliver="all",
     skills=["firecrawl-web-intelligence"],
     enabled_toolsets=["web", "terminal", "file"]
 )
 
-# Web arama ile yeni içerik takibi
+# Web search for new content
 cronjob(
     action="create",
-    name="AI Haber Takip",
+    name="AI News Tracker",
     schedule="every 2h",
-    prompt="web_search ile 'open source AI coding assistant launch' ara "
-           "(limit=5). DAHA ÖNCE GÖRÜLMEMİŞ yeni sonuç varsa özetle. "
-           "Yeni sonuç yoksa sessiz kal.",
+    prompt="Use web_search to find 'open source AI coding assistant launch' "
+           "(limit=5). If there are NEW results not seen before, summarize. "
+           "If no new results, stay silent.",
     deliver="all",
     enabled_toolsets=["web"]
 )
 ```
 
-**Cronjob kısıtları:** Headless çalışır, browser araçları sınırlı olabilir.
-`web_extract` ve `web_search` tercih et. `enabled_toolsets` ile gereksiz
-araçları kapat.
+**Cronjob limitations:** Runs headless; browser tools may be limited.
+Prefer `web_extract` and `web_search`. Disable unnecessary tools with
+`enabled_toolsets`.
 
 ---
 
-## 📄 Doküman İşleme — `read_file` + Terminal
+## 📄 Document Parsing — `read_file` + Terminal
 
 ```bash
-# PDF → metin
+# PDF → text
 pdftotext document.pdf -                          # poppler-utils (brew install poppler)
 python3 -c "import pymupdf; print(chr(12).join([p.get_text() for p in pymupdf.open('doc.pdf')]))"
 
-# DOCX → metin
+# DOCX → text
 python3 -c "from docx import Document; print('\n'.join([p.text for p in Document('doc.docx').paragraphs]))"
 
-# XLSX → metin
+# XLSX → text
 python3 -c "import pandas as pd; print(pd.read_excel('file.xlsx').to_markdown())"
 ```
 
-**En kolay yol:** `read_file` aracı `.ipynb`, `.docx`, `.xlsx` dosyalarını
-otomatik olarak metne çevirir — çoğu durumda `pdftotext`/`pymupdf`'e gerek
-kalmaz.
+**Easiest path:** The `read_file` tool auto-converts `.ipynb`, `.docx`, `.xlsx`
+files to text — in most cases you won't need `pdftotext`/`pymupdf`.
 
 ---
 
-## Operasyonel Kurallar
+## Operational Rules
 
-### Verimlilik
+### Efficiency
 
-1. **Önce `web_search`, sonra `web_extract`.** Aramayla en doğru sayfayı bul,
-   sonra içeriğini oku. Tüm siteyi taramak yerine hedefli çalış.
-2. **Statik sayfalar için `web_extract` yeterli.** Sadece JS-gerektiren
-   sayfalarda `browser`'a geç. `web_extract` boş içerik dönerse → browser
-   fallback.
-3. **Paralel extract.** Bağımsız URL'leri aynı `web_extract` çağrısında
-   toplu gönder (5 URL'e kadar). Daha fazlasını `execute_code` ile batch'le.
-4. **Browser'da her snapshot sonrası karar ver.** Körlemesine tıklama zinciri
-   yapma. Her adımda sayfanın değiştiğini doğrula.
+1. **`web_search` first, then `web_extract`.** Find the right page with search,
+   then read its content. Don't crawl an entire site for one answer.
+2. **`web_extract` is enough for static pages.** Only switch to `browser` for
+   JS-heavy pages. If `web_extract` returns empty → browser fallback.
+3. **Parallel extract.** Send independent URLs in the same `web_extract` call
+   (up to 5 URLs). Batch more with `execute_code`.
+4. **Decide after every browser snapshot.** Don't chain clicks blindly. Verify
+   the page changed after every action.
 
-### Etik ve Saygılı Davranış
+### Ethics & Polite Behavior
 
-- **robots.txt ve ToS:** `web_extract` ve `web_search` Hermes altyapısı
-  üzerinden çalışır. Yine de hedef sitenin kullanım şartlarına uy.
-- **Aşırı istekten kaçın:** Aynı siteye kısa sürede çok sayıda istek yapma.
-  Batch'leri aralıklı gönder. `web_extract` batch'leri arasında bekle.
-- **PII / gizlilik:** E-posta, telefon, özel profil gibi kişisel verileri
-  kullanıcı açıkça istemedikçe toplama. Şüpheli durumda ham veri yerine özet
-  çıkar.
-- **Login duvarı / paywall:** Bu araç setinde proxy rotasyonu veya CAPTCHA
-  çözme YOKTUR. Cloudflare challenge, login duvarı, paywall olan siteler
-  başarısız olabilir. Kullanıcıya dürüstçe bildir — sessizce boş sayfa dönme.
+- **robots.txt & ToS:** `web_extract` and `web_search` run through Hermes
+  infrastructure. Still comply with the target site's terms of use.
+- **Avoid excessive requests:** Don't hammer the same site with rapid requests.
+  Space out batches. Wait between `web_extract` batches.
+- **PII / privacy:** Don't harvest personal data (emails, phone numbers, private
+  profiles) unless the user explicitly requests it from a legitimate source.
+  When in doubt, summarize instead of bulk-extracting personal fields.
+- **Login walls / paywalls:** This toolkit has NO proxy rotation or CAPTCHA
+  solving. Cloudflare challenges, login walls, and paywalled sites may fail.
+  Tell the user honestly — don't silently return an empty page.
 
-### Rate Limiting ve İstek Kontrolü
+### Rate Limiting & Request Control
 
-- **İstek aralığı:** Aynı siteye ardışık `web_extract` istekleri arasında
-  en az **1 saniye** bırak. `execute_code` ile batch yapıyorsan `time.sleep(1)`
-  ekle.
-- **429 (Rate Limited) yanıtı:** Eğer bir istek 429 dönerse (Hermes seviyesinde
-  olabilir) **exponential backoff** uygula:
-  - İlk retry: 2 saniye bekle
-  - İkinci retry: 4 saniye bekle
-  - Üçüncü retry: 8 saniye bekle
-  - Max: 16 saniye
-  - 3 başarısız retry'den sonra dur, kullanıcıya bildir.
-- **Sonsuz crawl yasağı:** Asla limitsiz crawl başlatma. Her zaman bir
-  **sert sayfa limiti** belirle (max 15 sayfa önerilir). Büyük crawl'lar
-  context limitini aşar ve kaynakları tüketir.
-- **Batch stratejisi:** 5'ten fazla URL varsa `execute_code` ile 5'erli
-  batch'lere böl, batch'ler arası 1-2 saniye bekle.
+- **Request pacing:** Leave at least **1 second** between consecutive
+  `web_extract` requests to the same domain. If batching with `execute_code`,
+  add `time.sleep(1)`.
+- **429 (Rate Limited) response:** If a request returns 429 (may happen at
+  Hermes level), apply **exponential backoff**:
+  - 1st retry: wait 2 seconds
+  - 2nd retry: wait 4 seconds
+  - 3rd retry: wait 8 seconds
+  - Max: 16 seconds
+  - After 3 failed retries, stop and notify the user.
+- **No infinite crawls:** Never start a crawl without a limit. Always set a
+  **hard page limit** (max 15 pages recommended). Large crawls exceed context
+  limits and exhaust resources.
+- **Batch strategy:** For more than 5 URLs, split into batches of 5 with
+  `execute_code`, wait 1-2 seconds between batches.
 
-### Hata Yönetimi
+### Error Handling
 
-| Hata | Teşhis | Aksiyon |
+| Error | Diagnosis | Action |
 |---|---|---|
-| `web_extract` boş/eksik içerik | Sayfa JS render gerektiriyor | `browser_navigate` ile dene |
-| `browser_navigate` timeout | Anti-bot (Cloudflare, login duvarı) | `browser_vision` ile kontrol et → Human-in-the-Loop (aşağıya bak) |
-| `browser_console` `null` dönüyor | Selector yanlış veya element yok | `browser_snapshot` ile sayfa yapısını gör, DOM hiyerarşisini analiz et, doğru selector bul |
-| `browser_snapshot` ref ID'leri değişmiş | Sayfa yeniden render oldu | Yeni snapshot'taki güncel ref ID'leri kullan |
-| Site tamamen erişilemez | Anti-bot koruması, geo-block, kapalı site | Kullanıcıya "site erişilemez" bildirimi yap, alternatif source öner |
-| `web_search` sonuçları alakasız | Query çok geniş veya yanlış | `site:`, `"tam ifade"`, `-hariç` operatörleriyle daralt |
+| `web_extract` empty/incomplete | Page requires JS rendering | Try `browser_navigate` |
+| `browser_navigate` timeout | Anti-bot (Cloudflare, login wall) | Check with `browser_vision` → Human-in-the-Loop (see below) |
+| `browser_console` returns `null` | Wrong selector or element missing | Use `browser_snapshot` to see page structure, analyze DOM hierarchy, find correct selector |
+| `browser_snapshot` ref IDs changed | Page re-rendered | Use the updated ref IDs from the latest snapshot |
+| Site completely inaccessible | Anti-bot protection, geo-block, down | Notify user "site inaccessible", suggest alternative source |
+| `web_search` results irrelevant | Query too broad or wrong | Narrow with `site:`, `"exact phrase"`, `-exclude` operators |
 
-### Human-in-the-Loop (CAPTCHA / Login Duvarı)
+### Human-in-the-Loop (CAPTCHA / Login Wall)
 
-Eğer browser bir **CAPTCHA**, **login ekranı** veya **manuel doğrulama**
-gerektiren bir engelle karşılaşırsa:
+If the browser encounters a **CAPTCHA**, **login screen**, or any challenge
+requiring **manual verification**:
 
-1. **Kör bypass deneme.** CAPTCHA çözmeye veya login duvarını aşmaya
-   çalışma.
-2. **False positive'a dikkat:** Sayfa içeriğinde "captcha" kelimesinin
-   geçmesi engellendiğin anlamına GELMEZ. Örneğin bir dokümantasyon
-   sayfası "CAPTCHA'yı nasıl çözeriz"den bahsediyor olabilir. Gerçek
-   engel işaretleri: `cf-turnstile`, `g-recaptcha`, `h-captcha` gibi
-   spesifik widget class'ları, `challenge` platformu URL'leri, veya
-   sayfanın ana içeriğinin tamamen bir doğrulama formu olması.
-3. **Otomasyonu durdur** ve kullanıcıya şu formatta bildir:
+1. **Don't attempt blind bypass.** Don't try to solve CAPTCHAs or break through
+   login walls.
+2. **Watch for false positives:** The word "captcha" appearing in page content
+   does NOT mean you're blocked. For example, a documentation page might discuss
+   "how CAPTCHAs work." Real blocking signals: `cf-turnstile`, `g-recaptcha`,
+   `h-captcha` widget classes, challenge platform URLs, or the page's main
+   content being entirely a verification form.
+3. **Stop automation** and notify the user in this format:
 
-   > ⚠️ **Manuel müdahale gerekli:** `[URL]` adresine otomatik erişim
-   > bir CAPTCHA / login ekranı tarafından engelleniyor. Lütfen sayfayı
-   > manuel olarak açıp engeli aş, sonra bana "devam et" de.
+   > ⚠️ **Manual intervention required:** Automated access to `[URL]` is blocked
+   > by a CAPTCHA / login screen. Please open the page manually, resolve the
+   > block, and tell me to continue.
 
-4. Kullanıcı onay vermeden işleme devam etme.
+4. Don't proceed without explicit user confirmation.
 
 ### Format
 
-- **Varsayılan çıktı:** Temiz markdown. `web_extract` ana içeriğe odaklanır
-  (nav/footer/ads temizlenir).
-- **Yapılandırılmış veri:** Markdown'ı aldıktan sonra LLM olarak SEN analiz
-  et ve tablo/JSON olarak yapılandır. Harici bir servise gerek yok.
+- **Default output:** Clean markdown. `web_extract` focuses on main content
+  (nav/footer/ads stripped).
+- **Structured data:** After getting markdown, YOU as the LLM analyze and
+  structure it as a table/JSON. No external service needed.
 
 ---
 
-## Çalışan Örnek
+## Worked Example
 
-> "Amazon'da iPhone 16 fiyatlarını araştır."
+> "Find iPhone 16 prices on Amazon."
 
 ```python
-# 1. ARA — en alakalı ürün sayfasını bul
-web_search("iPhone 16 fiyat site:amazon.com", limit=5)
-# → sonuçlardan en alakalı ürün URL'sini seç
+# 1. SEARCH — find the most relevant product page
+web_search("iPhone 16 price site:amazon.com", limit=5)
+# → pick the most relevant product URL from results
 
-# 2. DENE (statik) — önce web_extract
+# 2. TRY (static) — start with web_extract
 web_extract(["https://www.amazon.com/.../dp/B0XXXXX..."])
-# → fiyat JS ile yükleniyorsa boş/eksik gelebilir
+# → if price is JS-injected, may return empty/incomplete
 
-# 3. FALLBACK (browser) — JS gerekiyorsa
+# 3. FALLBACK (browser) — if JS needed
 browser_navigate("https://www.amazon.com/.../dp/B0XXXXX...")
 browser_snapshot()
-# → fiyatı snapshot'ta gördün mü? Görmediysen scroll:
+# → see the price in snapshot? If not, scroll:
 
-# 4. ETKİLEŞİM — gerekirse
+# 4. INTERACT — if needed
 browser_scroll(direction="down")
 browser_snapshot()
 
-# 5. DOM'DAN ÇEK — en kesin yöntem
+# 5. DOM EXTRACTION — most reliable method
 browser_console(expression="document.querySelector('.a-price .a-offscreen')?.textContent")
 # → "$1,199.00"
 
-# 6. GÖRSEL DOĞRULAMA — emin olmak için
-browser_vision(question="Bu sayfadaki ürün adı, fiyatı ve stok durumu nedir?")
+# 6. VISUAL VERIFICATION — to be sure
+browser_vision(question="What is the product name, price, and stock status on this page?")
 ```
 
-Fiyatlar scroll/click ile yükleniyorsa veya bölge seçici varsa, browser
-etkileşim zincirini uzat: `browser_click` → `browser_snapshot` → `browser_console`.
+If prices load only after scrolling/clicking a region selector, extend the
+browser interaction chain: `browser_click` → `browser_snapshot` → `browser_console`.
 
 ---
 
-## Sık Kullanılan Desenler
+## Common Patterns
 
-### 1. Araştırma Akışı
+### 1. Research Flow
 ```
-web_search → en iyi 3 URL → web_extract → analiz et → özetle
-```
-
-### 2. Fiyat/Ürün Takibi
-```
-web_extract (ürün sayfası) → veriyi yapılandır → cronjob ile tekrarla
+web_search → top 3 URLs → web_extract → analyze → summarize
 ```
 
-### 3. Dinamik Sayfa Verisi
+### 2. Price/Product Tracking
+```
+web_extract (product page) → structure data → repeat via cronjob
+```
+
+### 3. Dynamic Page Data
 ```
 browser_navigate → browser_snapshot → browser_click/type → browser_snapshot → browser_console
 ```
 
-### 4. Site Haritası + İçerik
+### 4. Site Map + Content
 ```
-browser_navigate → browser_console (linkleri çıkar) → web_extract (toplu URL)
+browser_navigate → browser_console (extract links) → web_extract (batch URLs)
 ```
 
-### 5. Görsel Doğrulama
+### 5. Visual Verification
 ```
-browser_navigate → browser_vision → gerekirse browser_click → browser_vision
+browser_navigate → browser_vision → if needed browser_click → browser_vision
 ```
 
 ---
 
 ## Common Pitfalls
 
-1. **Statik sayfalar için browser kullanma.** `web_extract` çok daha hızlıdır.
-   Sadece JS-gerektiren sayfalarda browser'a geç.
+1. **Using browser for static pages.** `web_extract` is much faster. Only switch
+   to browser for JS-heavy pages.
 
-2. **Browser oturumunu zincirleme.** Her `browser_navigate` yeni sayfa açar.
-   Aynı sitede: navigate → snapshot → click → snapshot → click → snapshot
-   şeklinde zincirle.
+2. **Not chaining browser sessions.** Each `browser_navigate` opens a new page.
+   Chain within the same site: navigate → snapshot → click → snapshot → click →
+   snapshot.
 
-3. **Snapshot'tan sonra eski ref ID'lerini kullanma.** Sayfa her değiştiğinde
-   ref ID'leri (`@e1`, `@e2`) yenilenir. Her zaman son snapshot'taki ref'leri
-   kullan.
+3. **Using old ref IDs after snapshot.** Ref IDs (`@e1`, `@e2`) refresh every
+   time the page changes. Always use refs from the most recent snapshot.
 
-4. **`web_extract` her sayfada çalışmaz.** Amazon, Cloudflare korumalı siteler
-   başarısız olabilir. Browser ile dene, başarısız olursa kullanıcıya bildir.
+4. **`web_extract` doesn't work on every page.** Amazon, Cloudflare-protected
+   sites may fail. Try browser, and if that fails, tell the user.
 
-5. **Çok fazla paralel `web_extract`.** Aynı anda 5'ten fazla URL gönderme.
-   Gerekirse `execute_code` ile batch'lere böl.
+5. **Too many parallel `web_extract` calls.** Don't send more than 5 URLs at once.
+   Split into batches with `execute_code` if needed.
 
-6. **`browser_console` çıktısını kontrol etmeden kullanma.** `null`/`undefined`
-   dönebilir. Önce `browser_snapshot` ile sayfa yapısını gör.
+6. **Using `browser_console` output without checking.** It may return
+   `null`/`undefined`. First use `browser_snapshot` to see the page structure.
 
-7. **Cronjob'da browser kullanımı.** Cronjob'lar headless çalışır.
-   `web_extract` ve `web_search` tercih et, `enabled_toolsets` ile browser'ı
-   kapat.
+7. **Using browser in cronjobs.** Cronjobs run headless. Prefer `web_extract`
+   and `web_search`, disable browser with `enabled_toolsets`.
 
-8. **Anti-bot engelini sessizce geçme.** Cloudflare, login duvarı, CAPTCHA
-   varsa kullanıcıya dürüstçe bildir. Boş sayfayı içerik gibi sunma.
+8. **Silently passing through anti-bot blocks.** If there's a Cloudflare
+   challenge, login wall, or CAPTCHA, tell the user honestly. Don't present
+   an empty page as content.
 
 ---
 
 ## Verification Checklist
 
-- [ ] Doğru araç seçildi mi? (`web_search` / `web_extract` / `browser` / `cronjob`)
-- [ ] Statik sayfa için `web_extract`, dinamik için `browser` kullanıldı mı?
-- [ ] Her `browser_click`/`browser_type` sonrası `browser_snapshot` ile doğrulandı mı?
-- [ ] `browser_snapshot` sonrası güncel ref ID'leri kullanıldı mı?
-- [ ] `web_extract` çoklu URL'leri paralel gönderildi mi (5'e kadar)?
-- [ ] Boş içerik durumunda browser fallback denendi mi?
-- [ ] `browser_console` null dönüyorsa alternatif selector denendi mi?
-- [ ] Anti-bot engeli durumunda kullanıcıya bildirildi mi?
-- [ ] Sonuçlar temiz Markdown/Tablo formatında sunuldu mu?
+- [ ] Right tool selected? (`web_search` / `web_extract` / `browser` / `cronjob`)
+- [ ] Static pages use `web_extract`, dynamic use `browser`?
+- [ ] Every `browser_click`/`browser_type` followed by `browser_snapshot` verification?
+- [ ] Current ref IDs used after each `browser_snapshot`?
+- [ ] `web_extract` multi-URLs sent in parallel (up to 5)?
+- [ ] Browser fallback attempted on empty content?
+- [ ] Alternative selector tried if `browser_console` returns null?
+- [ ] User notified on anti-bot block?
+- [ ] Results presented in clean Markdown/Table format?

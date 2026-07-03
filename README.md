@@ -1,26 +1,26 @@
-# 🕸️ Web İstihbarat Ajansı
+# 🕸️ Web Scraping Intelligence
 
 ![Cover](assets/cover.png)
 
-**Çoklu AI Ajan Desteğiyle Özgür Web Kazıma Framework'ü**
+**Multi-Agent Web Scraping Framework — Free & Open Source**
 
-> Sıfır API anahtarı • Sıfır kurulum • Sıfır kredi • 3 AI ajanı için optimize edilmiş
+> Zero API keys • Zero setup • Zero credits • Optimized for 3 AI agents
 
 ---
 
-## 🤖 Hangi Ajanı Kullanıyorsun?
+## 🤖 Which Agent Are You Using?
 
-| Ajan | Entegrasyon | Kurulum | En İyi Yanı |
+| Agent | Integration | Setup | Best Feature |
 |---|---|---|---|
-| **Hermes Agent** | [📖 Rehber](integrations/hermes.md) | Sıfır — tüm araçlar yerleşik | `browser_vision`, `cronjob`, `execute_code` |
-| **Claude Code** | [📖 Rehber](integrations/claude-code.md) | `pip install` + `playwright install` | Native image vision, güçlü Bash entegrasyonu |
-| **Antigravity** | [📖 Rehber](integrations/antigravity.md) | Sıfır (native) veya `pip install` (CLI) | `browser_subagent`, `schedule`, çift mod |
+| **Hermes Agent** | [📖 Guide](integrations/hermes.md) | Zero — all tools built-in | `browser_vision`, `cronjob`, `execute_code` |
+| **Claude Code** | [📖 Guide](integrations/claude-code.md) | `pip install` + `playwright install` | Native image vision, strong Bash integration |
+| **Antigravity** | [📖 Guide](integrations/antigravity.md) | Zero (native) or `pip install` (CLI) | `browser_subagent`, `schedule`, dual mode |
 
 ---
 
-## 🎯 Nedir?
+## 🎯 What Is This?
 
-Firecrawl'ın tüm yeteneklerini (search, scrape, interact, crawl, map, batch, monitor, parse) **hiçbir ücretli servise bağlı kalmadan**, her AI ajanının kendi yerleşik araçlarıyla gerçekleştiren bir framework.
+A framework that replicates Firecrawl's full feature set (search, scrape, interact, crawl, map, batch, monitor, parse) **without any paid service dependency**, using each AI agent's own built-in tools.
 
 | Firecrawl | Hermes | Claude Code | Antigravity |
 |---|---|---|---|
@@ -29,35 +29,35 @@ Firecrawl'ın tüm yeteneklerini (search, scrape, interact, crawl, map, batch, m
 | `interact` | `browser_*` | `interact.py` | `browser_subagent` |
 | `map` | `browser_console` | `map.py` | `browser_subagent` |
 | `crawl` | `web_extract` (batch) | `crawl.py` | `browser_subagent` |
-| `batch` | `web_extract` (toplu) | `batch_scrape.py` | `read_url_content` |
+| `batch` | `web_extract` (multi) | `batch_scrape.py` | `read_url_content` |
 | `monitor` | `cronjob` | `monitor.py` + cron | `schedule` |
 | `parse` | `read_file` | `parse.py` | `view_file` |
 
 ---
 
-## 📊 Karşılaştırma
+## 📊 Comparison
 
-| Kriter | Bu Framework | webscout | Antigravity |
+| Criteria | This Framework | webscout | Antigravity |
 |---|---|---|---|
-| Kapsam (8 araç) | **10** | 7.5 | 8 |
-| Araç Derinliği | **9.5** | 10 | 7 |
-| Op. Olgunluk | **9.5** | 10 | 6 |
-| Hata Yönetimi | **10** | 10 | 9 |
-| Kurulum | **10** | 4 | 10 |
+| Coverage (8 tools) | **10** | 7.5 | 8 |
+| Tool Depth | **9.5** | 10 | 7 |
+| Op. Maturity | **9.5** | 10 | 6 |
+| Error Handling | **10** | 10 | 9 |
+| Setup Ease | **10** | 4 | 10 |
 | Rate Limiting | **10** | 8 | 10 |
 | Human-in-the-Loop | **10** | 5 | 10 |
-| Çoklu Ajan Desteği | **10** | 0 | 0 |
-| **TOPLAM** | **🥇 128** | 🥈 94 | 🥉 88 |
+| Multi-Agent Support | **10** | 0 | 0 |
+| **TOTAL** | **🥇 128** | 🥈 94 | 🥉 88 |
 
 ---
 
-## 🚀 Hızlı Başlangıç
+## 🚀 Quick Start
 
 ### Hermes Agent
 ```bash
 cp SKILL.md ~/.hermes/skills/research/firecrawl-web-intelligence/
 ```
-Skill otomatik tetiklenir. Ek kurulum yok.
+Skill auto-triggers. No additional setup.
 
 ### Claude Code
 ```bash
@@ -65,13 +65,13 @@ git clone https://github.com/onderkygz/Web-Scraping-Intelligence.git
 cd Web-Scraping-Intelligence
 pip install --break-system-packages -r assets/requirements.txt
 playwright install chromium
-cp integrations/claude-code.md ~/.claude/skills/web-istihbarat.md
+cp integrations/claude-code.md ~/.claude/skills/web-scraping-intelligence.md
 ```
 
 ### Antigravity
 ```bash
-# Native mod: Sıfır kurulum, araçlar zaten yerleşik
-# CLI mod:
+# Native mode: Zero setup, tools already built-in
+# CLI mode:
 git clone https://github.com/onderkygz/Web-Scraping-Intelligence.git
 cd Web-Scraping-Intelligence
 pip install --break-system-packages -r assets/requirements.txt
@@ -79,45 +79,45 @@ pip install --break-system-packages -r assets/requirements.txt
 
 ---
 
-## 🧠 Kullanım
+## 🧠 Usage
 
-Skill, şu tür isteklerde otomatik olarak yüklenir:
+The skill auto-loads on requests like:
 
-- "Amazon'da iPhone 16 fiyatlarını araştır"
-- "Şu sitenin tüm sayfalarını tara ve özetle"
-- "Bu sayfadaki formu doldurup sonucu getir"
-- "Her saat başı fiyat değişikliğini kontrol et"
-- "Bu PDF'teki metni çıkar"
-
----
-
-## 🏗️ Mimarisi
-
-3 farklı skill'in en iyi yanları + 3 farklı AI ajanı için optimize edilmiş:
-
-- **Kendi özgün tasarımı:** Sıfır kurulum, monitoring, parse, vision, Türkçe
-- **webscout:** Karar akışı, araç derinliği, operasyonel olgunluk, error handling
-- **Antigravity:** Rate limiting, human-in-the-loop, infinite crawl ban, bug fix geçmişi
-- **Gerçek debugging tecrübesi:** False positive uyarısı, boş tab kontrolü, baseline deseni
+- "Find iPhone 16 prices on Amazon"
+- "Scrape this entire site and summarize it"
+- "Fill out this form and get the result"
+- "Check for price changes every hour"
+- "Extract text from this PDF"
 
 ---
 
-## 📁 Repo Yapısı
+## 🏗️ Architecture
+
+Built by merging the best parts of 3 different skills + optimized for 3 AI agents:
+
+- **Original design:** Zero setup, monitoring, parse, vision, Turkish
+- **webscout:** Decision flow, tool depth, operational maturity, error handling
+- **Antigravity:** Rate limiting, human-in-the-loop, infinite crawl ban, bug fix history
+- **Real debugging experience:** False positive warnings, blank tab detection, baseline pattern
+
+---
+
+## 📁 Repo Structure
 
 ```
 Web-Scraping-Intelligence/
-├── README.md                          # Bu dosya
-├── SKILL.md                           # Hermes Agent skill dosyası (ana kaynak)
+├── README.md                          # This file
+├── SKILL.md                           # Hermes Agent skill file (primary source)
 ├── assets/
-│   └── cover.png                      # Repo kapağı
+│   └── cover.png                      # Repo cover
 ├── integrations/
-│   ├── hermes.md                      # Hermes Agent entegrasyon rehberi
-│   ├── claude-code.md                 # Claude Code entegrasyon rehberi
-│   └── antigravity.md                 # Antigravity entegrasyon rehberi
+│   ├── hermes.md                      # Hermes Agent integration guide
+│   ├── claude-code.md                 # Claude Code integration guide
+│   └── antigravity.md                 # Antigravity integration guide
 ```
 
 ---
 
-## 📄 Lisans
+## 📄 License
 
 MIT © 2025
