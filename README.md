@@ -5,6 +5,8 @@
 **A Free Web Scraping Framework* with Support for Multiple AI Agents*
 
 > Zero API keys • Zero setup • Zero credit • Optimised for 3 AI agents
+>
+> 👤 **Onder Kaygusuz** — [LinkedIn](https://linkedin.com/in/onderkygz) · [GitHub](https://github.com/onderkygz)
 
 ---
 
