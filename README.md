@@ -107,14 +107,26 @@ Built by merging the best parts of 3 different skills + optimized for 3 AI agent
 ```
 Web-Scraping-Intelligence/
 ├── README.md                          # This file
+├── LICENSE                            # MIT License
 ├── SKILL.md                           # Hermes Agent skill file (primary source)
 ├── assets/
-│   └── cover.png                      # Repo cover
+│   ├── cover.png                      # Repo cover
+│   └── requirements.txt               # Python dependencies (Claude Code/Antigravity CLI)
 ├── integrations/
 │   ├── hermes.md                      # Hermes Agent integration guide
 │   ├── claude-code.md                 # Claude Code integration guide
 │   └── antigravity.md                 # Antigravity integration guide
-```
+├── scripts/                           # Python CLI scripts (Claude Code mode)
+│   ├── search.py                      # DuckDuckGo web search
+│   ├── scrape.py                      # URL → clean markdown
+│   ├── interact.py                    # Browser interaction (CDP)
+│   ├── crawl.py                       # BFS multi-page crawler
+│   ├── map.py                         # Site URL discovery
+│   ├── batch_scrape.py                # Parallel multi-URL scrape
+│   ├── monitor.py                     # Hash-and-diff change tracker
+│   └── parse.py                       # PDF/DOCX/XLSX/PPTX/CSV parser
+└── references/
+    └── api_mapping.md                 # Firecrawl API → CLI flag mapping
 
 ---
 

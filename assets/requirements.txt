@@ -1,0 +1,20 @@
+requests
+beautifulsoup4
+lxml
+trafilatura
+markdownify
+ddgs
+playwright
+
+# parse.py (document parsing) dependencies:
+pymupdf
+python-docx
+pandas
+openpyxl
+python-pptx
+tabulate
+
+# optional, only needed for `parse.py --ocr` on scanned/image PDFs:
+# pytesseract
+# pillow
+# (plus the tesseract binary itself, e.g. `brew install tesseract` on macOS)
