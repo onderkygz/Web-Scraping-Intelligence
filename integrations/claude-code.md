@@ -15,8 +15,8 @@
 
 ```bash
 # 1. Repoyu klonla
-git clone https://github.com/onderkygz/web-istihbarat-ajansi.git
-cd web-istihbarat-ajansi
+git clone https://github.com/onderkygz/Web-Scraping-Intelligence.git
+cd Web-Scraping-Intelligence
 
 # 2. Bağımlılıkları kur
 pip install --break-system-packages -r assets/requirements.txt
