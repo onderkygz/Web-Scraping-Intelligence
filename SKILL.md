@@ -15,6 +15,8 @@ metadata:
 A Firecrawl-equivalent toolkit powered entirely by Hermes built-in tools.
 **Zero setup, zero API keys, zero credits.** Everything is ready to use.
 
+See `references/cross-agent-comparison.md` for the methodology used to build this skill by comparing and merging the best parts of equivalent skills from webscout and Antigravity.
+
 | Firecrawl | Hermes | How? |
 |---|---|---|
 | `search` | `web_search` | Web search, returns `{title, url, description}` |
@@ -425,15 +427,22 @@ web_extract (product page) → structure data → repeat via cronjob
 browser_navigate → browser_snapshot → browser_click/type → browser_snapshot → browser_console
 ```
 
-### 4. Site Map + Content
+### 4. Site Haritası + İçerik
 ```
-browser_navigate → browser_console (extract links) → web_extract (batch URLs)
+browser_navigate → browser_console (linkleri çıkar) → web_extract (toplu URL)
 ```
 
-### 5. Visual Verification
+### 5. Görsel Doğrulama
 ```
-browser_navigate → browser_vision → if needed browser_click → browser_vision
+browser_navigate → browser_vision → gerekirse browser_click → browser_vision
 ```
+
+### 6. OSINT Kişi Araştırması
+```
+web_search → primary source → RocketReach → haber taraması → sosyal medya → skorlu rapor
+```
+Detaylı adımlar: `references/osint-person-research.md`
+Güven skorlama sistemi: `references/osint-methodology.md`
 
 ---
 
@@ -465,6 +474,17 @@ browser_navigate → browser_vision → if needed browser_click → browser_visi
    challenge, login wall, or CAPTCHA, tell the user honestly. Don't present
    an empty page as content.
 
+9. **Merging data from different people with the same name.** When researching
+   a person, check discriminating fields (location, industry, career trajectory,
+   education) to detect name collisions. Two data clusters with incompatible
+   fields belong to DIFFERENT people. Flag mismatches explicitly.
+
+10. **Treating third-party data as definitive without primary source.** If the
+    user gave you a URL and you can't access it, STOP and say so. Don't silently
+    substitute data from RocketReach, news sites, or search snippets. Every
+    finding needs a trust score: ✅✅✅ (3+ sources), ✅✅ (2 sources), ✅ (1 source),
+    ⚠️ (contradicts primary source → reject). See `references/osint-methodology.md`.
+
 ---
 
 ## Verification Checklist
@@ -478,3 +498,7 @@ browser_navigate → browser_vision → if needed browser_click → browser_visi
 - [ ] Alternative selector tried if `browser_console` returns null?
 - [ ] User notified on anti-bot block?
 - [ ] Results presented in clean Markdown/Table format?
+
+## References
+
+- `references/skill-methodology.md` — How this skill was built: comparison scoring, merge strategy, evolution history, and key lessons for improving AI agent skills.
