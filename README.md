@@ -2,9 +2,9 @@
 
 ![Cover](assets/cover.png)
 
-**Çoklu AI Ajan Desteğiyle Özgür Web Kazıma Framework'ü**
+**A Free Web Scraping Framework* with Support for Multiple AI Agents*
 
-> Sıfır API anahtarı • Sıfır kurulum • Sıfır kredi • 3 AI ajanı için optimize edilmiş
+> Zero API keys • Zero setup • Zero credit • Optimised for 3 AI agents
 
 ---
 
