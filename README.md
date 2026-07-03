@@ -52,6 +52,44 @@ Each agent's **initial** skill score vs. the **final merged** framework:
 
 > **This Framework** = Antigravity + Claude Code + Hermes + real debugging experience, merged into one.
 
+### Scoring Methodology
+
+Each skill was scored independently on **7 criteria** using a **0–10 scale**, then converted to a **100-point total**:
+
+```
+Total = round( (sum of all 7 criteria) / 7 × 10 )
+```
+
+**Criteria definitions:**
+
+| # | Criteria | What it measures |
+|---|---|---|
+| 1 | **Coverage** | How many of Firecrawl's 8 tools (search/scrape/interact/map/crawl/batch/monitor/parse) are implemented |
+| 2 | **Tool Depth** | Level of detail per tool — flags, parameters, edge cases, output formats documented |
+| 3 | **Op. Maturity** | Operational readiness — robots.txt, rate limiting, PII, ToS, polite scraping, session hygiene |
+| 4 | **Error Handling** | Graceful degradation — fallback chains, error formats, anti-bot detection, null/undefined checks |
+| 5 | **Setup Ease** | How many steps to get started — zero = 10, pip install + playwright = 4 |
+| 6 | **Rate Limiting** | Backoff strategy — exponential backoff, retry limits, request pacing, crawl limits |
+| 7 | **Human-in-the-Loop** | CAPTCHA/login wall handling — escalation format, false positive protection, bypass prohibition |
+
+**Why these 7?** They represent the full lifecycle of a web scraping agent: what it can do (1–2), how safely it does it (3–4–6), how easy it is to adopt (5), and how it handles the unexpected (7).
+
+**Example — Antigravity (86/100):**
+
+```
+Coverage(8) + Depth(7) + Maturity(6) + Errors(9) + Setup(10) + Rate(10) + Human(10)
+= 60 / 7 = 8.57 × 10 = 85.7 → 86
+```
+
+**Example — This Framework (99/100):**
+
+```
+Coverage(10) + Depth(9.5) + Maturity(9.5) + Errors(10) + Setup(10) + Rate(10) + Human(10)
+= 69 / 7 = 9.86 × 10 = 98.6 → 99
+```
+
+> **Note:** Scores reflect each agent's **first published skill**, not their current version. This Framework's score reflects the final merged result after incorporating the best parts of all three.
+
 ---
 
 ## 🚀 Quick Start
