@@ -24,7 +24,7 @@ playwright install chromium
 
 # 3. Claude Code'a skill olarak ekle
 # Claude Code için: SKILL.md dosyasını Claude'un okuyabileceği bir yere koy
-cp integrations/claude-code.md ~/.claude/skills/web-istihbarat.md
+cp integrations/claude-code.md ~/.claude/skills/web-scraping-intelligence.md
 ```
 
 ## Araç Eşleştirme Tablosu
