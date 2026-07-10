@@ -9,6 +9,7 @@ import sys
 import time
 import urllib.parse as up
 from urllib import robotparser
+from urllib.parse import urlparse, urlunparse, urlencode
 
 import requests
 
@@ -24,6 +25,25 @@ DEFAULT_HEADERS = {
 }
 
 _robots_cache = {}
+
+
+def build_validated_url(base_url: str, path: str = "") -> str:
+    try:
+        if "/../" in base_url or re.search(r"/%2e%2e/", base_url, re.IGNORECASE):
+            raise ValueError("Invalid path")
+        parsed = urlparse(base_url)
+        if parsed.scheme not in ("http", "https"):
+            raise ValueError("Invalid protocol")
+        if not parsed.hostname:
+            raise ValueError("Invalid host")
+        allowed_domains = ["example.com"]  # add your allowed domains here
+        if parsed.hostname.lower() not in allowed_domains:
+            raise ValueError("Invalid host")
+        if path:
+            parsed = parsed._replace(path=path)
+        return urlunparse(parsed)
+    except Exception:
+        raise ValueError("Invalid URL")
 
 
 def eprint(*a, **kw):
@@ -80,7 +100,8 @@ def sitemap_urls(root_url):
     root = f"{parts.scheme}://{parts.netloc}"
     found = set()
     try:
-        resp = requests.get(root + "/robots.txt", headers=DEFAULT_HEADERS, timeout=8)
+        validated_url = build_validated_url(root, "/robots.txt")
+        resp = requests.get(validated_url, headers=DEFAULT_HEADERS, timeout=8)
         if resp.status_code == 200:
             for line in resp.text.splitlines():
                 if line.lower().startswith("sitemap:"):
@@ -96,6 +117,7 @@ def fetch_html(url, timeout=20, headers=None, max_retries=3, backoff_base=2):
     """Fetch a URL with polite exponential backoff on 429/503.
     Retries: 2s, 4s, 8s (capped), then gives up and lets the caller decide.
     """
+    validated_url = build_validated_url(url)
     h = dict(DEFAULT_HEADERS)
     if headers:
         h.update(headers)
@@ -103,7 +125,7 @@ def fetch_html(url, timeout=20, headers=None, max_retries=3, backoff_base=2):
     last_exc = None
     for attempt in range(max_retries + 1):
         try:
-            resp = requests.get(url, headers=h, timeout=timeout, allow_redirects=True)
+            resp = requests.get(validated_url, headers=h, timeout=timeout, allow_redirects=True)
         except requests.RequestException as e:
             last_exc = e
             if attempt < max_retries:
