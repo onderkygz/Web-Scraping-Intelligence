@@ -19,5 +19,5 @@ tabulate
 # pytesseract
 # pillow
 # (plus the tesseract binary itself, e.g. `brew install tesseract` on macOS)
-h11==0.14.0+aikido.2
+h11==0.16.0
 h11==0.16.0
