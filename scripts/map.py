@@ -18,6 +18,7 @@ import argparse
 import sys
 import urllib.parse as up
 import xml.etree.ElementTree as ET
+import defusedxml.ElementTree as DefusedET
 
 import requests
 
@@ -32,7 +33,7 @@ def parse_sitemap(xml_text, depth=0, max_depth=3, seen=None):
     seen = seen if seen is not None else set()
     urls = []
     try:
-        root = ET.fromstring(xml_text.encode("utf-8") if isinstance(xml_text, str) else xml_text)
+        root = DefusedET.fromstring(xml_text.encode("utf-8") if isinstance(xml_text, str) else xml_text)
     except ET.ParseError:
         return urls
 
