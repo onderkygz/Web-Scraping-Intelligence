@@ -15,10 +15,12 @@ Usage:
 Output: {"url": ..., "source": "sitemap"|"shallow_crawl"|"mixed", "links": [...], "count": N}
 """
 import argparse
+import re
 import sys
 import urllib.parse as up
 import xml.etree.ElementTree as ET
 import defusedxml.ElementTree as DefusedET
+from urllib.parse import urlparse, urlunparse
 
 import requests
 
@@ -26,6 +28,20 @@ sys.path.insert(0, __file__.rsplit("/", 1)[0])
 from _common import out, eprint, fetch_html, sitemap_urls, extract_links, normalize_url, same_domain, DEFAULT_HEADERS
 
 SITEMAP_NS = {"sm": "http://www.sitemaps.org/schemas/sitemap/0.9"}
+
+
+def validate_url(url: str) -> str:
+    try:
+        if "/../" in url or re.search(r"/%2e%2e/", url, re.IGNORECASE):
+            raise ValueError("Invalid path")
+        parsed = urlparse(url)
+        if parsed.scheme not in ("http", "https"):
+            raise ValueError("Invalid protocol")
+        if not parsed.hostname:
+            raise ValueError("Invalid host")
+        return urlunparse(parsed)
+    except Exception:
+        raise ValueError("Invalid URL")
 
 
 def parse_sitemap(xml_text, depth=0, max_depth=3, seen=None):
@@ -55,7 +71,8 @@ def parse_sitemap(xml_text, depth=0, max_depth=3, seen=None):
                 continue
             seen.add(loc)
             try:
-                resp = requests.get(loc, headers=DEFAULT_HEADERS, timeout=15)
+                validated_loc = validate_url(loc)
+                resp = requests.get(validated_loc, headers=DEFAULT_HEADERS, timeout=15)
                 if resp.status_code == 200:
                     urls.extend(parse_sitemap(resp.text, depth + 1, max_depth, seen))
             except Exception as e:
@@ -77,7 +94,8 @@ def from_sitemaps(root_url):
     all_urls = set()
     for sm_url in sitemap_urls(root_url):
         try:
-            resp = requests.get(sm_url, headers=DEFAULT_HEADERS, timeout=15)
+            validated_sm_url = validate_url(sm_url)
+            resp = requests.get(validated_sm_url, headers=DEFAULT_HEADERS, timeout=15)
             if resp.status_code == 200 and resp.content:
                 all_urls.update(parse_sitemap(resp.text))
         except Exception:
